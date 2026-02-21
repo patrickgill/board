@@ -16,6 +16,9 @@ uploads/
 # Dependency directories (errors)
 vendor/modules.txt
 
+# Editor source dependencies
+editor-src/node_modules/
+
 # Environment/IDE
 .env
 .vscode/

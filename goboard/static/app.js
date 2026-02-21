@@ -8,7 +8,7 @@ let socket;
 let clientId = '';
 let isRemoteUpdate = false;
 let editor;
-let remoteCursors = {}; // Map<clientId, IEditorDecorationsCollection>
+let remoteCursors = {}; // Map<clientId, boolean> — just tracks presence
 let pendingContent = null; // Buffer content until editor is ready
 let reconnectTimer = null;
 let reconnectDelay = 1000;
@@ -30,14 +30,13 @@ if (themeBtn) {
         localStorage.setItem('goboard-theme', currentTheme);
         updateThemeIcon();
         if (editor) {
-            monaco.editor.setTheme(currentTheme);
+            editor.setTheme(currentTheme);
         }
     };
 }
 
 function updateThemeIcon() {
     if (themeBtn) {
-        // Use non-colorful characters to blend in better with the UI text
         themeBtn.textContent = currentTheme === 'dark' ? '☼' : '☾';
         themeBtn.title = currentTheme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode';
     }
@@ -47,114 +46,25 @@ function updateThemeIcon() {
 connect();
 loadConfig();
 
-// Configure Monaco AMD loader
-require.config({
-    paths: { vs: 'vendor/monaco/vs' }
-});
-
-// Initialize Monaco Editor
-require(['vs/editor/editor.main'], function () {
-    // Define a custom dark theme to match our UI
-    monaco.editor.defineTheme('dark', {
-        base: 'vs-dark',
-        inherit: true,
-        rules: [
-            { token: 'keyword', foreground: '7f6df2' },
-            { token: 'comment', foreground: '6a9955' },
-            { token: 'string', foreground: 'ce9178' },
-        ],
-        colors: {
-            'editor.background': '#1e1e1e',
-            'editor.foreground': '#cccccc',
-            'editor.lineHighlightBackground': '#2a2a2a',
-            'editor.selectionBackground': '#264f78',
-            'editorCursor.foreground': '#aeafad',
-            'editorWhitespace.foreground': '#3b3b3b',
-        }
-    });
-
-    monaco.editor.defineTheme('light', {
-        base: 'vs',
-        inherit: true,
-        rules: [
-            { token: 'keyword', foreground: '0000ff' },
-            { token: 'comment', foreground: '008000' },
-            { token: 'string', foreground: 'a31515' },
-        ],
-        colors: {
-            'editor.background': '#ffffff',
-            'editor.foreground': '#333333',
-            'editor.lineHighlightBackground': '#f0f0f0',
-            'editor.selectionBackground': '#add6ff',
-            'editorCursor.foreground': '#000000',
-            'editorWhitespace.foreground': '#d3d3d3',
-        }
-    });
-
-    editor = monaco.editor.create(document.getElementById('editor-container'), {
-        value: '',
-        language: 'markdown',
-        theme: currentTheme,
-        fontFamily: "'Cascadia Code', 'JetBrains Mono', 'Fira Code', Consolas, monospace",
-        fontSize: 15,
-        lineHeight: 24,
-        padding: { top: 20 },
-        minimap: { enabled: false },
-        wordWrap: 'on',
-        lineNumbers: 'on',
-        glyphMargin: false,
-        folding: true,
-        renderLineHighlight: 'line',
-        scrollBeyondLastLine: false,
-        automaticLayout: true,
-        tabSize: 4,
-        insertSpaces: true,
-        smoothScrolling: true,
-        cursorBlinking: 'smooth',
-        cursorSmoothCaretAnimation: 'on',
-        bracketPairColorization: { enabled: true },
-        guides: { indentation: true },
-        // Writing-focused settings — no code IDE features
-        quickSuggestions: false,
-        suggestOnTriggerCharacters: false,
-        acceptSuggestionOnEnter: 'off',
-        wordBasedSuggestions: 'off',
-        parameterHints: { enabled: false },
-        overviewRulerLanes: 0,
-        hideCursorInOverviewRuler: true,
-        overviewRulerBorder: false,
-        scrollbar: {
-            vertical: 'auto',
-            horizontal: 'hidden',
-            verticalScrollbarSize: 8,
-        },
-    });
-
-    // Listen for content changes
-    // Listen for content changes (Throttled to 500ms)
-    editor.onDidChangeModelContent(throttle(() => {
+// Initialize CodeMirror 6 editor (GoEditor bundle loads synchronously)
+editor = GoEditor.init(document.getElementById('editor-container'), {
+    theme: currentTheme,
+    onChange: throttle((content) => {
         if (!isRemoteUpdate) {
-            broadcast(editor.getValue());
+            broadcast(content);
         }
-    }, 500));
-
-    // Broadcast cursor position (Throttled to 100ms)
-    editor.onDidChangeCursorPosition(throttle((e) => {
-        const model = editor.getModel();
-        if (model) {
-            const offset = model.getOffsetAt(e.position);
-            sendCursor(offset);
-        }
-    }, 100));
-
-    // Apply any content that arrived while Monaco was loading
-    if (pendingContent !== null) {
-        isRemoteUpdate = true;
-        editor.setValue(pendingContent);
-        isRemoteUpdate = false;
-        pendingContent = null;
-    }
+    }, 500),
+    onCursorChange: throttle((offset) => {
+        sendCursor(offset);
+    }, 100),
 });
+
+if (pendingContent !== null) {
+    isRemoteUpdate = true;
+    editor.setValue(pendingContent);
+    isRemoteUpdate = false;
+    pendingContent = null;
+}
 
 // WebSocket
 function connect() {
@@ -189,37 +99,40 @@ function connect() {
     };
 
     socket.onmessage = (e) => {
-        const msg = JSON.parse(e.data);
-        if (msg.type === 'init') {
-            clientId = msg.id;
-            // Handle content
-            if (msg.content) {
-                if (editor) {
-                    isRemoteUpdate = true;
-                    editor.setValue(msg.content);
-                    isRemoteUpdate = false;
-                } else {
-                    pendingContent = msg.content;
+        try {
+            const msg = JSON.parse(e.data);
+            if (msg.type === 'init') {
+                clientId = msg.id;
+                // Handle content
+                if (msg.content != null && msg.content !== '') {
+                    if (editor) {
+                        isRemoteUpdate = true;
+                        editor.setValue(msg.content);
+                        isRemoteUpdate = false;
+                    } else {
+                        pendingContent = msg.content;
+                    }
                 }
-            }
-            // Handle presence
-            updatePresence(msg.count, msg.users, msg.ids);
-        } else if (msg.type === 'update') {
-            if (msg.id !== clientId && editor) {
-                const current = editor.getValue();
-                if (current !== (msg.content || '')) {
-                    isRemoteUpdate = true;
-                    // Preserve cursor position across remote updates
-                    const pos = editor.getPosition();
-                    editor.setValue(msg.content || '');
-                    if (pos) editor.setPosition(pos);
-                    isRemoteUpdate = false;
+                // Handle presence
+                updatePresence(msg.count, msg.users, msg.ids);
+            } else if (msg.type === 'update') {
+                if (msg.id !== clientId && editor) {
+                    const current = editor.getValue();
+                    if (current !== (msg.content || '')) {
+                        isRemoteUpdate = true;
+                        const cursorOffset = editor.getCursorOffset();
+                        editor.setValue(msg.content || '');
+                        editor.setCursorOffset(cursorOffset);
+                        isRemoteUpdate = false;
+                    }
                 }
+            } else if (msg.type === 'presence') {
+                updatePresence(msg.count, msg.users, msg.ids);
+            } else if (msg.type === 'cursor') {
+                updateRemoteCursor(msg.id, msg.cursor);
             }
-        } else if (msg.type === 'presence') {
-            updatePresence(msg.count, msg.users, msg.ids);
-        } else if (msg.type === 'cursor') {
-            updateRemoteCursor(msg.id, msg.cursor);
+        } catch (err) {
+            console.error('WebSocket message error:', err, e.data?.substring?.(0, 200));
         }
     };
 }
@@ -233,14 +146,11 @@ function updatePresence(count, users, ids) {
     const title = users && users.length > 0 ? users.join('\n') : '';
     if (statusContainer) statusContainer.title = title;
 
-    // Cleanup ghost cursors
-    if (ids) {
+    // Cleanup ghost cursors for users that have left
+    if (ids && editor) {
         Object.keys(remoteCursors).forEach(id => {
-            // If the user is no longer present (and it's not us)
             if (!ids.includes(id) && id !== clientId) {
-                if (remoteCursors[id]) {
-                    remoteCursors[id].clear();
-                }
+                editor.clearRemoteCursor(id);
                 delete remoteCursors[id];
             }
         });
@@ -268,32 +178,9 @@ function sendCursor(offset) {
 }
 
 function updateRemoteCursor(id, offset) {
-    if (!editor || id === clientId) return;
-
-    const model = editor.getModel();
-    if (!model) return;
-
-    const pos = model.getPositionAt(offset);
-
-    // Get or create collection
-    let collection = remoteCursors[id];
-    if (!collection) {
-        collection = editor.createDecorationsCollection();
-        remoteCursors[id] = collection;
-    }
-
-    const colorIndex = Math.abs(hashCode(id)) % 8;
-    const colorClass = 'cursor-color-' + colorIndex;
-
-    collection.set([
-        {
-            range: new monaco.Range(pos.lineNumber, pos.column, pos.lineNumber, pos.column),
-            options: {
-                beforeContentClassName: 'remote-cursor ' + colorClass,
-                stickiness: monaco.editor.TrackedRangeStickiness.NeverGrowsWhenTypingAtEdges
-            }
-        }
-    ]);
+    if (id === clientId || !editor) return;
+    remoteCursors[id] = true;
+    editor.setRemoteCursor(id, offset);
 }
 
 function hashCode(str) {
@@ -339,7 +226,7 @@ async function loadConfig() {
             const logo = document.querySelector('.logo strong');
             if (logo) logo.innerText = `GoBoard ${cfg.version}`;
         }
-        
+
         // Show build stamp in About modal if available
         if (cfg.build_stamp) {
             const buildDiv = document.getElementById('about-build');
@@ -416,9 +303,8 @@ fileUpload.onchange = async (e) => {
                 insertText += link + '\n';
             });
 
-            const selection = editor.getSelection();
-            const op = { range: selection, text: insertText, forceMoveMarkers: true };
-            editor.executeEdits("insert-file", [op]);
+            const sel = editor.getSelection();
+            editor.insertAt(sel.from, sel.to, insertText);
 
             successes++;
         } catch (err) {
@@ -440,7 +326,6 @@ fileUpload.onchange = async (e) => {
 
 
 
-// Host Info Modal Logic
 // About Info Box (clicked via logo)
 (function () {
     const modal = document.getElementById('about-modal');
@@ -451,7 +336,7 @@ fileUpload.onchange = async (e) => {
         appLogo.style.cursor = 'pointer';
         appLogo.onclick = async () => {
             if (statsDiv) statsDiv.innerHTML = '<div style="padding:20px;">Loading stats...</div>';
-            
+
             try {
                 const res = await fetch('/stats');
                 if (res.ok) {
@@ -476,7 +361,7 @@ fileUpload.onchange = async (e) => {
                 if (statsDiv) statsDiv.innerHTML = 'Failed to load stats';
                 console.error('Failed to fetch stats:', e);
             }
-            
+
             if (modal) modal.style.display = 'flex';
         };
     }
@@ -496,15 +381,13 @@ fileUpload.onchange = async (e) => {
     const dump = document.getElementById('host-dump');
     const title = document.getElementById('modal-title');
 
-    let infoEditor = null;
-
     function setup(btnId, modalTitle, url) {
         const btn = document.getElementById(btnId);
         if (!btn) return;
         btn.onclick = async () => {
             if (modal) modal.style.display = 'flex';
             if (title) title.textContent = modalTitle;
-            if (dump) dump.innerHTML = '<div style="padding:20px;">Loading...</div>';
+            if (dump) dump.textContent = 'Loading...';
 
             try {
                 const res = await fetch(url);
@@ -513,52 +396,7 @@ fileUpload.onchange = async (e) => {
                     title.textContent = modalTitle + ' (Cached)';
                 }
                 const data = await res.json();
-
-                // Initialize Monaco for Info if not exists
-                if (!infoEditor) {
-                    dump.innerHTML = ''; // Clear loading text
-                    infoEditor = monaco.editor.create(dump, {
-                        value: JSON.stringify(data, null, 2),
-                        language: 'json',
-                        theme: currentTheme,
-                        readOnly: true,
-                        automaticLayout: true,
-                        minimap: { enabled: false },
-                        scrollBeyondLastLine: false,
-                        folding: true,
-                        lineNumbers: 'off',
-                        renderLineHighlight: 'none',
-                    });
-                } else {
-                    dump.innerHTML = ''; // Clear loading/error text, imperative for monaco mount
-                    // If the editor's domNode was removed by innerHTML='', we need to re-append or re-create
-                    // Ideally we shouldn't wipe dump.innerHTML if editor exists.
-                    // Let's attach editor to a dedicated container instead.
-                }
-
-                // Better approach: Check if editor model exists and updates
-                if (infoEditor) {
-                    // Ensure the editor is still attached to the DOM
-                    if (!dump.contains(infoEditor.getDomNode())) {
-                        dump.innerHTML = '';
-                        infoEditor = monaco.editor.create(dump, {
-                            value: JSON.stringify(data, null, 2),
-                            language: 'json',
-                            theme: currentTheme,
-                            readOnly: true,
-                            automaticLayout: true,
-                            minimap: { enabled: false },
-                            scrollBeyondLastLine: false,
-                            folding: true,
-                            lineNumbers: 'off',
-                            renderLineHighlight: 'none',
-                        });
-                    } else {
-                        infoEditor.setValue(JSON.stringify(data, null, 2));
-                        infoEditor.setScrollTop(0);
-                    }
-                }
-
+                dump.textContent = JSON.stringify(data, null, 2);
             } catch (e) {
                 if (dump) dump.textContent = 'Error: ' + e.message;
             }
@@ -627,20 +465,18 @@ fileUpload.onchange = async (e) => {
             // Preview
             let preview = '';
             if (file.is_image) {
-                // Use background image for cover fit
                 preview = `<div class="file-preview-img" style="background-image: url('${file.url}');"></div>`;
             } else {
-                // Determine icon based on mime_type
                 const mt = file.mime_type || '';
                 let icon = '📄';
-                
+
                 if (mt.startsWith('audio/')) icon = '🎵';
                 else if (mt.startsWith('video/')) icon = '🎬';
                 else if (mt.startsWith('text/')) icon = '📝';
                 else if (mt === 'application/pdf') icon = '📄';
                 else if (mt.includes('zip') || mt.includes('archive') || mt.includes('compressed')) icon = '📦';
                 else if (mt === 'application/x-msdownload' || mt === 'application/x-msi' || mt.includes('executable')) icon = '⚙️';
-                
+
                 preview = `<div class="file-preview-icon">${icon}</div>`;
             }
 
@@ -672,9 +508,8 @@ fileUpload.onchange = async (e) => {
             item.onclick = () => {
                 if (editor) {
                     const text = file.is_image ? `![${file.name}](${file.url})` : `[${file.name}](${file.url})`;
-                    const selection = editor.getSelection();
-                    const op = { range: selection, text: text, forceMoveMarkers: true };
-                    editor.executeEdits("insert-file", [op]);
+                    const sel = editor.getSelection();
+                    editor.insertAt(sel.from, sel.to, text);
                     if (modal) modal.style.display = 'none';
                 }
             };

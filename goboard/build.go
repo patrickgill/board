@@ -27,6 +27,12 @@ func main() {
 
 	os.MkdirAll("build", 0755)
 
+	// Bundle CodeMirror 6 editor
+	if err := buildEditorBundle(); err != nil {
+		fmt.Fprintf(os.Stderr, "Error building editor bundle: %v\n", err)
+		os.Exit(1)
+	}
+
 	// Create zip archive with pre-gzipped files
 	if err := createGzippedZip("static", filepath.Join("build", "static.zip")); err != nil {
 		fmt.Fprintf(os.Stderr, "Error creating archive: %v\n", err)
@@ -64,6 +70,37 @@ func main() {
 	}
 
 	fmt.Println("Done.")
+}
+
+// buildEditorBundle runs esbuild to bundle editor-src/index.js into
+// static/vendor/cm6/editor.bundle.js. Run `npm install` in editor-src first.
+func buildEditorBundle() error {
+	fmt.Println("Bundling CodeMirror 6...")
+	if err := os.MkdirAll(filepath.Join("static", "vendor", "cm6"), 0755); err != nil {
+		return err
+	}
+
+	// Resolve absolute paths so they remain valid after chdir into editor-src.
+	editorSrc, err := filepath.Abs("editor-src")
+	if err != nil {
+		return err
+	}
+	outfile, err := filepath.Abs(filepath.Join("static", "vendor", "cm6", "editor.bundle.js"))
+	if err != nil {
+		return err
+	}
+	esbuildBin := filepath.Join(editorSrc, "node_modules", ".bin", "esbuild")
+
+	cmd := exec.Command(esbuildBin,
+		"index.js",
+		"--bundle",
+		"--minify",
+		"--outfile="+outfile,
+	)
+	cmd.Dir = editorSrc
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	return cmd.Run()
 }
 
 // createGzippedZip creates a zip archive where each file is internally gzipped.

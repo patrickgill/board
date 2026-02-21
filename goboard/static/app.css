@@ -338,6 +338,127 @@ main {
     color: var(--text-dim);
 }
 
-.monaco-aria-container {
-    display: none !important;
+/* CodeMirror 6 editor */
+.cm-editor {
+    height: 100%;
+    outline: none;
 }
+
+.cm-editor.cm-focused {
+    outline: none;
+}
+
+/* Heading sizes in raw/active mode (Decoration.line applies these to .cm-line) */
+.cm-line.cm-md-h1 { font-size: 1.7em; line-height: 1.3; font-weight: 700; color: var(--text-strong); }
+.cm-line.cm-md-h2 { font-size: 1.45em; line-height: 1.3; font-weight: 700; color: var(--text-strong); }
+.cm-line.cm-md-h3 { font-size: 1.2em; line-height: 1.3; font-weight: 600; color: var(--text-strong); }
+.cm-line.cm-md-h4 { font-size: 1.05em; font-weight: 600; color: var(--text-strong); }
+.cm-line.cm-md-h5 { font-size: 1em; font-weight: 600; color: var(--text-dim); }
+.cm-line.cm-md-h6 { font-size: 0.9em; font-weight: 600; color: var(--text-dim); }
+
+/* Live preview rendered blocks */
+.cm-md-rendered {
+    padding: 2px 20px;
+    line-height: 1.6;
+    color: var(--text);
+    cursor: text;
+}
+
+.cm-md-rendered h1,
+.cm-md-rendered h2,
+.cm-md-rendered h3,
+.cm-md-rendered h4,
+.cm-md-rendered h5,
+.cm-md-rendered h6 {
+    color: var(--text-strong);
+    margin: 0.5em 0 0.25em;
+    line-height: 1.3;
+    font-weight: 600;
+}
+
+.cm-md-rendered h1 { font-size: 1.7em; }
+.cm-md-rendered h2 { font-size: 1.4em; }
+.cm-md-rendered h3 { font-size: 1.2em; }
+.cm-md-rendered h4,
+.cm-md-rendered h5,
+.cm-md-rendered h6 { font-size: 1em; }
+
+.cm-md-rendered p {
+    margin: 0.25em 0;
+}
+
+.cm-md-rendered ul,
+.cm-md-rendered ol {
+    margin: 0.25em 0;
+    padding-left: 1.5em;
+}
+
+.cm-md-rendered li {
+    margin: 0.15em 0;
+}
+
+.cm-md-rendered blockquote {
+    border-left: 3px solid var(--border);
+    margin: 0.4em 0;
+    padding: 0.2em 0 0.2em 1em;
+    color: var(--text-dim);
+}
+
+.cm-md-rendered code {
+    font-family: 'Cascadia Code', 'JetBrains Mono', 'Fira Code', Consolas, monospace;
+    font-size: 0.9em;
+    background: var(--btn-bg);
+    padding: 0.1em 0.3em;
+    border-radius: 3px;
+}
+
+.cm-md-rendered pre {
+    background: var(--btn-bg);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 0.75em 1em;
+    margin: 0.4em 0;
+    overflow-x: auto;
+}
+
+.cm-md-rendered pre code {
+    background: none;
+    padding: 0;
+    font-size: 0.9em;
+}
+
+.cm-md-rendered a {
+    color: #448aff;
+    text-decoration: none;
+}
+
+.cm-md-rendered a:hover {
+    text-decoration: underline;
+}
+
+.cm-md-rendered hr {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 0.75em 0;
+}
+
+.cm-md-rendered img {
+    max-width: 100%;
+}
+
+/* Remote cursors for CM6 */
+.cm-remote-cursor {
+    position: relative;
+    border-left: 2px solid;
+    margin-left: -1px;
+    pointer-events: none;
+}
+
+.cm-remote-cursor.cursor-color-0 { border-color: #ff5252; }
+.cm-remote-cursor.cursor-color-1 { border-color: #448aff; }
+.cm-remote-cursor.cursor-color-2 { border-color: #69f0ae; }
+.cm-remote-cursor.cursor-color-3 { border-color: #e040fb; }
+.cm-remote-cursor.cursor-color-4 { border-color: #ffd740; }
+.cm-remote-cursor.cursor-color-5 { border-color: #ffab40; }
+.cm-remote-cursor.cursor-color-6 { border-color: #536dfe; }
+.cm-remote-cursor.cursor-color-7 { border-color: #00e5ff; }
