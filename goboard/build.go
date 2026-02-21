@@ -16,11 +16,11 @@ import (
 )
 
 func main() {
-
+	progname := "goboard"
 	now := time.Now()
 	version := "1.0.0"
 	buildStamp := now.Format("20060102.1504")
-	binary := filepath.Join("build", "goboard")
+	binary := filepath.Join("build", progname)
 	if runtime.GOOS == "windows" {
 		binary += ".exe"
 	}
@@ -52,7 +52,7 @@ func main() {
 		}
 	}
 
-	fmt.Printf("Building GoBoard v%s (Build %s) → %s\n", version, buildStamp, binary)
+	fmt.Printf("Building %s v%s (Build %s) → %s\n", progname, version, buildStamp, binary)
 
 	args := []string{
 		"build",

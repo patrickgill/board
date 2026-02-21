@@ -1,90 +1,141 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>GoBoard</title>
+        <link rel="icon" type="image/png" href="favicon" />
+        <link rel="stylesheet" href="app.css" />
+    </head>
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GoBoard</title>
-    <link rel="icon" type="image/png" href="favicon">
-    <link rel="stylesheet" href="app.css">
-</head>
+    <body>
+        <div class="app-container">
+            <header>
+                <div class="logo" id="app-logo"><strong>GoBoard</strong></div>
+                <div id="status-container" class="status-container">
+                    <span id="connection-status" class="status-dot"></span>
+                    <span id="status-text">Connecting...</span>
+                    <a
+                        id="host-link"
+                        class="header-link"
+                        target="_blank"
+                        style="
+                            margin-left: 10px;
+                            color: var(--text-dim);
+                            text-decoration: none;
+                            font-size: 0.8rem;
+                        "
+                    ></a>
+                </div>
+                <div class="header-right">
+                    <button id="host-btn" class="header-btn">🖥️ Host</button>
+                    <button id="hw-btn" class="header-btn">🔧 H/W</button>
+                    <button id="files-btn" class="header-btn">📂 Insert</button>
+                    <label for="file-upload" class="header-btn">
+                        📤 Upload
+                        <input type="file" id="file-upload" multiple hidden />
+                    </label>
+                    <a href="/files/" class="header-btn">📁 Files</a>
+                    <button
+                        id="theme-btn"
+                        class="header-btn"
+                        title="Toggle Theme"
+                    >
+                        ☼
+                    </button>
+                </div>
+            </header>
 
-<body>
-    <div class="app-container">
-        <header>
-            <div class="logo" id="app-logo"><strong>GoBoard</strong></div>
-            <div id="status-container" class="status-container">
-                <span id="connection-status" class="status-dot"></span>
-                <span id="status-text">Connecting...</span>
-                <a id="host-link" class="header-link" target="_blank"
-                    style="margin-left: 10px; color: var(--text-dim); text-decoration: none; font-size: 0.8rem;"></a>
-            </div>
-            <div class="header-right">
-                <button id="host-btn" class="header-btn">🖥️ Host</button>
-                <button id="hw-btn" class="header-btn">🔧 H/W</button>
-                <button id="files-btn" class="header-btn">📂 Insert</button>
-                <label for="file-upload" class="header-btn">
-                    📤 Upload
-                    <input type="file" id="file-upload" multiple hidden>
-                </label>
-                <a href="/files/" class="header-btn">📁 Files</a>
-                <button id="theme-btn" class="header-btn" title="Toggle Theme">☼</button>
-            </div>
-        </header>
-
-        <main>
-            <div id="editor-container"></div>
-        </main>
-    </div>
-
-    <!-- Host Modal -->
-    <div id="host-modal" class="modal-overlay" style="display: none;">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3 id="modal-title">System Info</h3>
-                <button id="close-host-modal" class="close-btn">&times;</button>
-            </div>
-            <div class="modal-body">
-                <pre id="host-dump">Loading...</pre>
-            </div>
+            <main>
+                <div id="editor-container"></div>
+            </main>
         </div>
-    </div>
 
-    <!-- Files Modal -->
-    <div id="files-modal" class="modal-overlay" style="display: none;">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Uploaded Files</h3>
-                <button id="close-files-modal" class="close-btn">&times;</button>
-            </div>
-            <div class="modal-body">
-                <div id="files-grid" class="files-grid">Looking for files...</div>
-            </div>
-        </div>
-    </div>
-
-    <!-- About Modal -->
-    <div id="about-modal" class="modal-overlay" style="display: none;">
-        <div class="modal-content" style="width: auto; max-width: 350px; height: auto; min-height: 100px; flex: none;">
-            <div class="modal-header">
-                <h3>About GoBoard</h3>
-                <button id="close-about-modal" class="close-btn">&times;</button>
-            </div>
-            <div class="modal-body"
-                style="text-align: center; padding: 15px 20px; flex: none; font-size: 0.9rem; line-height: 1.4;">
-                GoBoard© 2026<br>
-                by Patrick Gill
-                <div id="about-build" style="font-size: 0.8rem; opacity: 0.8; margin-top: 5px;"></div>
-                <div id="about-stats"
-                    style="margin-top: 15px; padding-top: 10px; border-top: 1px solid var(--border); font-family: monospace; font-size: 0.8rem; text-align: left; opacity: 0.8;">
-                    Loading stats...
+        <!-- Host Modal -->
+        <div id="host-modal" class="modal-overlay" style="display: none">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 id="modal-title">System Info</h3>
+                    <button id="close-host-modal" class="close-btn">
+                        &times;
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <pre id="host-dump">Loading...</pre>
                 </div>
             </div>
         </div>
-    </div>
 
-    <script src="vendor/cm6/editor.bundle.js"></script>
-    <script src="app.js"></script>
-</body>
+        <!-- Files Modal -->
+        <div id="files-modal" class="modal-overlay" style="display: none">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>Uploaded Files</h3>
+                    <button id="close-files-modal" class="close-btn">
+                        &times;
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div id="files-grid" class="files-grid">
+                        Looking for files...
+                    </div>
+                </div>
+            </div>
+        </div>
 
+        <!-- About Modal -->
+        <div id="about-modal" class="modal-overlay" style="display: none">
+            <div
+                class="modal-content"
+                style="
+                    width: auto;
+                    max-width: 350px;
+                    height: auto;
+                    min-height: 100px;
+                    flex: none;
+                "
+            >
+                <div class="modal-header">
+                    <h3>About GoBoard</h3>
+                    <button id="close-about-modal" class="close-btn">
+                        &times;
+                    </button>
+                </div>
+                <div
+                    class="modal-body"
+                    style="
+                        text-align: center;
+                        padding: 15px 20px;
+                        flex: none;
+                        font-size: 0.9rem;
+                        line-height: 1.4;
+                    "
+                >
+                    GoBoard© 2026<br />
+                    by Patrick Gill
+                    <div
+                        id="about-build"
+                        style="font-size: 0.8rem; opacity: 0.8; margin-top: 5px"
+                    ></div>
+                    <div
+                        id="about-stats"
+                        style="
+                            margin-top: 15px;
+                            padding-top: 10px;
+                            border-top: 1px solid var(--border);
+                            font-family: monospace;
+                            font-size: 0.8rem;
+                            text-align: left;
+                            opacity: 0.8;
+                        "
+                    >
+                        Loading stats...
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script src="vendor/cm6/editor.bundle.js"></script>
+        <script src="app.js"></script>
+    </body>
 </html>

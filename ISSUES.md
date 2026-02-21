@@ -4,7 +4,13 @@ this is the fundamental flaw of the app as of now
 
 
 
+
+
 # upload
+21/02/2026
+if uploads/ doesn't exist there's an error message on macos
+
+
 uploading a large file returns:
 "Upload failed: NetworkError when attempting to fetch resource."
 i don't know what fetch resource means?

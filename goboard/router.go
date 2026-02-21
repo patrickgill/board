@@ -52,13 +52,16 @@ func NewRouter(cfg *Config) *chi.Mux {
 
 	// Files Index Page
 	mux.Get("/files", func(w http.ResponseWriter, r *http.Request) {
-		http.Redirect(w, r, "/files/", http.StatusMovedPermanently)
+		http.Redirect(w, r, "/files/", http.StatusTemporaryRedirect)
 	})
 
 	mux.Get("/files/", func(w http.ResponseWriter, r *http.Request) {
 		r.URL.Path = "/files.html"
 		StaticHandler(w, r)
 	})
+
+	mux.Handle("/vendor/", http.StripPrefix("/vendor/", http.FileServer(http.Dir("./vendor"))))
+	mux.Handle("/fonts/", http.StripPrefix("/fonts/", http.FileServer(http.Dir("./fonts"))))
 
 	// Static Assets (priority last)
 	mux.Handle("/*", http.HandlerFunc(StaticHandler))
