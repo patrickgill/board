@@ -1,0 +1,25 @@
+# Build output
+build/
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+
+# Runtime files (created by the binary)
+goboard.toml
+goboard.md
+uploads/
+
+# Dependency directories (errors)
+vendor/modules.txt
+
+# Environment/IDE
+.env
+.vscode/
+.idea/
+*.swp
+*.core
+.DS_Store

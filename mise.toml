@@ -1,0 +1,34 @@
+# mise r build:goboard; mise run run:goboard
+
+[tools]
+go = "latest"
+rust = "stable"
+
+[tasks."dir:goboard"]
+dir = "./goboard"
+
+[tasks."build:goboard"]
+description = "Run the build script inside the goboard directory"
+dir = "./goboard"
+run = "go run build.go"
+depends = ["dir:goboard"]
+
+[tasks."build:rustboard"]
+description = "Build the rustboard project"
+dir = "./rustboard"
+run = "cargo build --release"
+
+[tasks.build]
+description = "Run all builds in sequence"
+depends = ["build:goboard", "build:rustboard"]
+
+[tasks."run:goboard"]
+description = "Run the goboard binary"
+dir = "./goboard/build"
+run = "goboard.exe"
+depends = ["dir:goboard"]
+
+[tasks."run:rustboard"]
+description = "Run the rustboard binary"
+dir = "./rustboard"
+run = "cargo run --release"

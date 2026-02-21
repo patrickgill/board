@@ -18,3 +18,6 @@ web/node_modules/
 .vscode/
 *.swp
 *.swo
+
+relics/
+work/

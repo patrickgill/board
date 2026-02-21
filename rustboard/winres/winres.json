@@ -1,0 +1,57 @@
+{
+  "RT_GROUP_ICON": {
+    "APP": {
+      "0000": [
+        "icon.png",
+        "icon16.png"
+      ]
+    }
+  },
+  "RT_MANIFEST": {
+    "#1": {
+      "0409": {
+        "auto-elevate": false,
+        "description": "GoBoard — Collaborative Markdown Editor",
+        "disable-theming": false,
+        "disable-window-filtering": false,
+        "dpi-awareness": "system",
+        "execution-level": "as invoker",
+        "gdi-scaling": false,
+        "high-resolution-scrolling-aware": false,
+        "identity": {
+          "name": "GoBoard",
+          "version": "0.1.0.0"
+        },
+        "long-path-aware": true,
+        "minimum-os": "win7",
+        "printer-driver-isolation": false,
+        "segment-heap": false,
+        "ui-access": false,
+        "ultra-high-resolution-scrolling-aware": false,
+        "use-common-controls-v6": false
+      }
+    }
+  },
+  "RT_VERSION": {
+    "#1": {
+      "0000": {
+        "fixed": {
+          "file_version": "0.2026.214.758",
+          "product_version": "0.2026.214.758"
+        },
+        "info": {
+          "0409": {
+            "CompanyName": "Soluble Tech Solutions",
+            "FileDescription": "GoBoard — Collaborative Markdown Editor",
+            "FileVersion": "0.2026.0214.0758",
+            "InternalName": "goboard",
+            "LegalCopyright": "",
+            "OriginalFilename": "goboard.exe",
+            "ProductName": "GoBoard",
+            "ProductVersion": "0.2026.0214.0758"
+          }
+        }
+      }
+    }
+  }
+}

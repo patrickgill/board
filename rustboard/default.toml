@@ -1,0 +1,14 @@
+# GoBoard Configuration
+# All fields are optional. Uncomment and edit to override defaults.
+
+# Server port
+# port = "8080"
+
+# Board storage file (relative to binary)
+# board_file = "goboard.md"
+
+# Upload directory (relative to binary)
+# upload_dir = "uploads"
+
+# Maximum image upload size in MB
+# max_upload_mb = 100

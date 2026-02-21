@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Files</title>
+    <link rel="stylesheet" href="/files.css">
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <div class="header-left">
+                <a href="/" class="back-link">← GoBoard</a>
+                <h1>Files</h1>
+            </div>
+            <div class="header-right">
+                <div class="search-wrapper">
+                    <input type="text" id="search-input" placeholder="Filter files...">
+                    <button id="clear-search" class="clear-btn" title="Clear filter">&times;</button>
+                </div>
+            </div>
+        </header>
+
+        <main>
+            <table id="files-table">
+                <thead>
+                    <tr>
+                        <th class="col-icon"></th>
+                        <th class="col-name" data-sort="name">Name</th>
+                        <th class="col-date" data-sort="mod_time">Last Modified</th>
+                        <th class="col-size" data-sort="size">Size</th>
+                        <th class="col-actions">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="files-body">
+                    <!-- Loaded dynamically -->
+                    <tr class="loading-row">
+                        <td colspan="5">Scanning directory...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </main>
+
+        <footer>
+            <div id="stats-info">Loading...</div>
+            <div id="copyright">GoBoard (c) 2026</div>
+        </footer>
+    </div>
+
+    <script src="/files.js"></script>
+</body>
+
+</html>

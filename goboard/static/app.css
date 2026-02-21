@@ -1,0 +1,343 @@
+/* Local Font */
+@font-face {
+    font-family: 'Inter';
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+    src: url('fonts/inter-regular.woff2') format('woff2');
+}
+
+@font-face {
+    font-family: 'Inter';
+    font-style: normal;
+    font-weight: 600;
+    font-display: swap;
+    src: url('fonts/inter-semibold.woff2') format('woff2');
+}
+
+:root,
+[data-theme="dark"] {
+    --bg: #1e1e1e;
+    --header-bg: #252526;
+    --border: #333;
+    --text: #ccc;
+    --text-dim: #888;
+    --text-strong: #fff;
+    --btn-bg: rgba(255, 255, 255, 0.08);
+    --btn-hover: rgba(255, 255, 255, 0.12);
+    --modal-bg: #1e1e1e;
+    --modal-border: #444;
+    --item-bg: #252526;
+    --item-border: #333;
+    --item-hover-bg: #2a2d2e;
+    --item-hover-border: #555;
+    --icon-bg: #1e1e1e;
+    --icon-color: #555;
+    --shadow: rgba(0, 0, 0, 0.5);
+    --status-offline: #666;
+}
+
+[data-theme="light"] {
+    --bg: #ffffff;
+    --header-bg: #f5f5f5;
+    --border: #e0e0e0;
+    --text: #333333;
+    --text-dim: #666666;
+    --text-strong: #000;
+    --btn-bg: rgba(0, 0, 0, 0.05);
+    --btn-hover: rgba(0, 0, 0, 0.1);
+    --modal-bg: #ffffff;
+    --modal-border: #cccccc;
+    --item-bg: #f9f9f9;
+    --item-border: #e0e0e0;
+    --item-hover-bg: #f0f0f0;
+    --item-hover-border: #cccccc;
+    --icon-bg: #f0f0f0;
+    --icon-color: #888;
+    --shadow: rgba(0, 0, 0, 0.15);
+    --status-offline: #ccc;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    height: 100vh;
+    overflow: hidden;
+}
+
+.app-container {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+}
+
+header {
+    height: 44px;
+    background: var(--header-bg);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 1.25rem;
+    z-index: 100;
+    flex-shrink: 0;
+}
+
+.logo {
+    font-size: 0.9rem;
+    letter-spacing: -0.3px;
+}
+
+.status-container {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.8rem;
+    color: var(--text-dim);
+    cursor: default;
+}
+
+.status-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--status-offline);
+    display: inline-block;
+}
+
+.status-dot.online {
+    background: #4caf50;
+    box-shadow: 0 0 6px rgba(76, 175, 80, 0.5);
+}
+
+.header-btn {
+    font-family: inherit;
+    font-size: 0.8rem;
+    cursor: pointer;
+    padding: 0 12px;
+    height: 30px;
+    border-radius: 4px;
+    background: var(--btn-bg);
+    /* Slightly lighter/consistent */
+    color: var(--text);
+    border: 1px solid transparent;
+    transition: all 0.15s;
+
+    /* Flex alignment for label and buttons */
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    text-decoration: none;
+    margin-left: 4px;
+    user-select: none;
+}
+
+#theme-btn {
+    width: 32px;
+    padding: 0;
+}
+
+.header-btn:hover {
+    background: var(--btn-hover);
+}
+
+main {
+    flex: 1;
+    overflow: hidden;
+}
+
+#editor-container {
+    width: 100%;
+    height: 100%;
+}
+
+/* Remote Cursors */
+.remote-cursor::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    height: 100%;
+    border-left: 2px solid;
+    pointer-events: none;
+    margin-left: -1px;
+}
+
+.cursor-color-0::before {
+    border-color: #ff5252;
+}
+
+.cursor-color-1::before {
+    border-color: #448aff;
+}
+
+.cursor-color-2::before {
+    border-color: #69f0ae;
+}
+
+.cursor-color-3::before {
+    border-color: #e040fb;
+}
+
+.cursor-color-4::before {
+    border-color: #ffd740;
+}
+
+.cursor-color-5::before {
+    border-color: #ffab40;
+}
+
+.cursor-color-6::before {
+    border-color: #536dfe;
+}
+
+.cursor-color-7::before {
+    border-color: #00e5ff;
+}
+
+
+/* Modal Styles */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+}
+
+.modal-content {
+    background: var(--modal-bg);
+    border: 1px solid var(--modal-border);
+    border-radius: 8px;
+    width: 90%;
+    max-width: 900px;
+    max-width: 900px;
+    height: 85vh;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 4px 20px var(--shadow);
+    overflow: hidden;
+}
+
+.modal-header {
+    padding: 12px 16px;
+    background: var(--header-bg);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-header h3 {
+    font-weight: normal;
+    font-size: 16px;
+    margin: 0;
+}
+
+.close-btn {
+    background: none;
+    border: none;
+    color: var(--text);
+    font-size: 24px;
+    cursor: pointer;
+}
+
+.close-btn:hover {
+    color: var(--text-strong);
+}
+
+.modal-body {
+    padding: 0;
+    overflow: auto;
+    background: var(--modal-bg);
+    flex: 1;
+}
+
+#host-dump {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+}
+
+/* Files Grid */
+.files-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 16px;
+    padding: 16px;
+}
+
+.file-item {
+    background: var(--item-bg);
+    border: 1px solid var(--item-border);
+    border-radius: 4px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    flex-direction: column;
+}
+
+.file-item:hover {
+    background: var(--item-hover-bg);
+    border-color: var(--item-hover-border);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px var(--shadow);
+}
+
+.file-preview-img {
+    height: 100px;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-color: #000;
+}
+
+.file-preview-icon {
+    height: 100px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 48px;
+    background: var(--icon-bg);
+    color: var(--icon-color);
+}
+
+.file-info {
+    padding: 8px;
+    border-top: 1px solid var(--border);
+    background: var(--item-bg);
+}
+
+.file-name {
+    font-size: 0.85rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-bottom: 4px;
+    color: var(--text);
+}
+
+.file-meta {
+    font-size: 0.75rem;
+    color: var(--text-dim);
+}
+
+.monaco-aria-container {
+    display: none !important;
+}

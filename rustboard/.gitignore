@@ -1,0 +1,12 @@
+# Build output
+build/
+
+# Runtime files (created by the binary)
+goboard.toml
+goboard.md
+uploads/
+
+
+# Added by cargo
+
+/target
