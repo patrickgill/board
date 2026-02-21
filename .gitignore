@@ -1,0 +1,20 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Go
+goboard/build/
+goboard/uploads/
+
+# Rust
+rustboard/target/
+
+# Node
+web/node_modules/
+
+# Editor
+.idea/
+.vscode/
+*.swp
+*.swo
