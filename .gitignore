@@ -6,6 +6,7 @@
 # Go
 goboard/build/
 goboard/uploads/
+goboard/vendor/
 
 # Rust
 rustboard/target/
