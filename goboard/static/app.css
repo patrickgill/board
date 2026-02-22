@@ -312,6 +312,28 @@ main {
 .cm-line.cm-md-h6 { font-size: 0.9em; font-weight: 600; color: var(--text-dim); }
 
 
+/* Live preview: images */
+.cm-md-image {
+    max-width: 100%;
+    vertical-align: top;
+    border-radius: 4px;
+}
+
+/* Live preview: links */
+.cm-md-link {
+    color: #448aff;
+    cursor: pointer;
+}
+
+/* Live preview: horizontal rule */
+.cm-md-hr {
+    display: block;
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 8px 0;
+    height: 0;
+}
+
 /* Remote cursors for CM6 */
 .cm-remote-cursor {
     position: relative;

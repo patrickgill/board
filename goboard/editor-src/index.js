@@ -1,8 +1,10 @@
-import { lineNumbers, EditorView, Decoration, WidgetType, keymap } from '@codemirror/view';
+import { lineNumbers, highlightActiveLineGutter, highlightActiveLine, drawSelection, dropCursor, rectangularSelection, EditorView, Decoration, WidgetType, keymap, scrollPastEnd } from '@codemirror/view';
 import { EditorState, StateField, StateEffect, Compartment } from '@codemirror/state';
 import { markdown } from '@codemirror/lang-markdown';
 import { syntaxTree, syntaxHighlighting, defaultHighlightStyle } from '@codemirror/language';
-import { defaultKeymap, historyKeymap, history } from '@codemirror/commands';
+import { defaultKeymap, historyKeymap, history, indentWithTab } from '@codemirror/commands';
+import { closeBrackets, closeBracketsKeymap } from '@codemirror/autocomplete';
+import { searchKeymap, highlightSelectionMatches } from '@codemirror/search';
 
 // ---------------------------------------------------------------------------
 // Remote cursor effects & state field
@@ -96,44 +98,122 @@ const headingLineField = StateField.define({
 });
 
 // ---------------------------------------------------------------------------
-// Marker-hiding field: hides #, **, *, ` when cursor is NOT on that line
+// Live-preview field: hides markers, renders images/links/HRs
 // ---------------------------------------------------------------------------
 
 const HIDE_MARKERS = new Set(['HeaderMark', 'EmphasisMark', 'CodeMark']);
+const IMAGE_RE = /!\[([^\]]*)\]\(([^)]*)\)/;
 
-function buildMarkerHideDecos(state) {
+class ImageWidget extends WidgetType {
+    constructor(src, alt) {
+        super();
+        this.src = src;
+        this.alt = alt;
+    }
+    toDOM() {
+        const img = document.createElement('img');
+        img.src = this.src;
+        img.alt = this.alt;
+        img.title = this.alt;
+        img.className = 'cm-md-image';
+        img.onerror = () => { img.style.display = 'none'; };
+        return img;
+    }
+    eq(other) {
+        return this.src === other.src && this.alt === other.alt;
+    }
+    ignoreEvent() { return true; }
+}
+
+class HRWidget extends WidgetType {
+    toDOM() {
+        const el = document.createElement('span');
+        el.className = 'cm-md-hr';
+        return el;
+    }
+    eq() { return true; }
+    ignoreEvent() { return true; }
+}
+
+function buildLivePreviewDecos(state) {
     const cursorLine = state.doc.lineAt(state.selection.main.head).number;
     const decos = [];
 
     syntaxTree(state).iterate({
         enter(node) {
-            if (!HIDE_MARKERS.has(node.name)) return;
+            // --- Simple marker hiding (HeaderMark, EmphasisMark, CodeMark) ---
+            if (HIDE_MARKERS.has(node.name)) {
+                const nodeLine = state.doc.lineAt(node.from).number;
+                if (nodeLine === cursorLine) return;
 
-            // Show raw markers on the line the cursor is on
-            const nodeLine = state.doc.lineAt(node.from).number;
-            if (nodeLine === cursorLine) return;
+                let from = node.from;
+                let to = node.to;
 
-            let from = node.from;
-            let to = node.to;
-
-            // For header marks, also hide the trailing space (e.g. "## " → hidden)
-            if (node.name === 'HeaderMark') {
-                const lineEnd = state.doc.lineAt(from).to;
-                if (to < lineEnd && state.doc.sliceString(to, to + 1) === ' ') {
-                    to += 1;
+                // For header marks, also hide the trailing space ("## " → hidden)
+                if (node.name === 'HeaderMark') {
+                    const lineEnd = state.doc.lineAt(from).to;
+                    if (to < lineEnd && state.doc.sliceString(to, to + 1) === ' ') {
+                        to += 1;
+                    }
                 }
+
+                decos.push(Decoration.replace({}).range(from, to));
+                return;
             }
 
-            decos.push(Decoration.replace({}).range(from, to));
+            // --- Image: replace ![alt](url) with <img> widget ---
+            if (node.name === 'Image') {
+                const nodeLine = state.doc.lineAt(node.from).number;
+                if (nodeLine === cursorLine) return false;
+                const text = state.doc.sliceString(node.from, node.to);
+                const m = text.match(IMAGE_RE);
+                if (m) {
+                    decos.push(Decoration.replace({
+                        widget: new ImageWidget(m[2], m[1]),
+                    }).range(node.from, node.to));
+                }
+                return false; // don't recurse — whole node replaced
+            }
+
+            // --- Link: hide [ and ](url), style visible text ---
+            if (node.name === 'Link') {
+                const nodeLine = state.doc.lineAt(node.from).number;
+                if (nodeLine === cursorLine) return; // show raw on cursor line
+                const marks = node.node.getChildren('LinkMark');
+                if (marks.length >= 2) {
+                    // Hide opening [
+                    decos.push(Decoration.replace({}).range(marks[0].from, marks[0].to));
+                    // Hide from ] to end of Link — covers ](url)
+                    decos.push(Decoration.replace({}).range(marks[1].from, node.to));
+                    // Style remaining text as a link
+                    const textFrom = marks[0].to;
+                    const textTo = marks[1].from;
+                    if (textFrom < textTo) {
+                        decos.push(Decoration.mark({ class: 'cm-md-link' }).range(textFrom, textTo));
+                    }
+                }
+                // Don't return false — let child EmphasisMark/CodeMark be hidden too
+                return;
+            }
+
+            // --- Horizontal rule: replace --- with styled line ---
+            if (node.name === 'HorizontalRule') {
+                const nodeLine = state.doc.lineAt(node.from).number;
+                if (nodeLine === cursorLine) return false;
+                decos.push(Decoration.replace({
+                    widget: new HRWidget(),
+                }).range(node.from, node.to));
+                return false;
+            }
         }
     });
 
     return Decoration.set(decos, true);
 }
 
-const markerHideField = StateField.define({
-    create(state) { return buildMarkerHideDecos(state); },
-    update(_decos, tr) { return buildMarkerHideDecos(tr.state); },
+const livePreviewField = StateField.define({
+    create(state) { return buildLivePreviewDecos(state); },
+    update(_decos, tr) { return buildLivePreviewDecos(tr.state); },
     provide: f => EditorView.decorations.from(f),
 });
 
@@ -223,16 +303,24 @@ function init(element, { theme = 'dark', onChange, onCursorChange } = {}) {
         doc: '',
         extensions: [
             history(),
-            keymap.of([...defaultKeymap, ...historyKeymap]),
+            keymap.of([indentWithTab, ...closeBracketsKeymap, ...searchKeymap, ...defaultKeymap, ...historyKeymap]),
             markdown(),
             lineNumbers(),
+            highlightActiveLineGutter(),
+            highlightActiveLine(),
+            drawSelection(),
+            dropCursor(),
+            rectangularSelection(),
+            closeBrackets(),
+            highlightSelectionMatches(),
+            scrollPastEnd(),
             EditorView.lineWrapping,
             syntaxHighlighting(defaultHighlightStyle),
             remoteCursorField,
             suppressField,
             themeCompartment.of(buildTheme(theme)),
             headingLineField,
-            markerHideField,
+            livePreviewField,
             EditorView.updateListener.of(update => {
                 if (update.docChanged) {
                     if (!update.state.field(suppressField) && onChange) {
