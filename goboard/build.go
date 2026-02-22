@@ -89,6 +89,15 @@ func buildEditorBundle() error {
 	if err != nil {
 		return err
 	}
+	fmt.Println("Installing npm dependencies...")
+	npmInstall := exec.Command("npm", "install")
+	npmInstall.Dir = editorSrc
+	npmInstall.Stdout = os.Stdout
+	npmInstall.Stderr = os.Stderr
+	if err := npmInstall.Run(); err != nil {
+		return fmt.Errorf("npm install failed: %w", err)
+	}
+
 	esbuildBin := filepath.Join(editorSrc, "node_modules", ".bin", "esbuild")
 
 	cmd := exec.Command(esbuildBin,
