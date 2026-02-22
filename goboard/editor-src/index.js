@@ -1,7 +1,8 @@
-import { lineNumbers, highlightActiveLineGutter, drawSelection, dropCursor, rectangularSelection, EditorView, Decoration, WidgetType, keymap, scrollPastEnd } from '@codemirror/view';
+import { lineNumbers, highlightActiveLineGutter, drawSelection, dropCursor, rectangularSelection, highlightSpecialChars, EditorView, Decoration, WidgetType, keymap } from '@codemirror/view';
 import { EditorState, StateField, StateEffect, Compartment } from '@codemirror/state';
 import { markdown } from '@codemirror/lang-markdown';
-import { syntaxTree, syntaxHighlighting, defaultHighlightStyle } from '@codemirror/language';
+import { syntaxTree, syntaxHighlighting, defaultHighlightStyle, HighlightStyle } from '@codemirror/language';
+import { tags } from '@lezer/highlight';
 import { defaultKeymap, historyKeymap, history, indentWithTab, moveLineUp, moveLineDown } from '@codemirror/commands';
 
 // ---------------------------------------------------------------------------
@@ -229,7 +230,7 @@ const livePreviewField = StateField.define({
 
 function buildTheme(name) {
     const dark = name === 'dark';
-    return EditorView.theme({
+    const theme = EditorView.theme({
         '&': {
             height: '100%',
             fontFamily: "'Cascadia Code', 'JetBrains Mono', 'Fira Code', Consolas, monospace",
@@ -265,6 +266,10 @@ function buildTheme(name) {
             fontFamily: 'inherit',
         },
     }, { dark });
+    const highlight = syntaxHighlighting(HighlightStyle.define([
+        { tag: tags.url, color: dark ? '#6cb6ff' : '#2244bb' },
+    ]));
+    return [theme, highlight];
 }
 
 // ---------------------------------------------------------------------------
@@ -394,9 +399,9 @@ function init(element, { theme = 'dark', onChange, onCursorChange } = {}) {
             drawSelection(),
             dropCursor(),
             rectangularSelection(),
-            scrollPastEnd(),
+            highlightSpecialChars({ addSpecialChars: /\t/g }),
             EditorView.lineWrapping,
-            syntaxHighlighting(defaultHighlightStyle),
+            syntaxHighlighting(defaultHighlightStyle, { fallback: true }),
             remoteCursorField,
             suppressField,
             themeCompartment.of(buildTheme(theme)),
