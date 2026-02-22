@@ -170,8 +170,8 @@ function buildLivePreviewDecos(state) {
 
             // --- Image: replace ![alt](url) with <img> widget ---
             if (node.name === 'Image') {
-                const nodeLine = state.doc.lineAt(node.from).number;
-                if (nodeLine === cursorLine) return false;
+                const cur = state.selection.main.head;
+                if (cur > node.from && cur < node.to) return false;
                 const text = state.doc.sliceString(node.from, node.to);
                 const link = parseMarkdownLink(text);
                 if (link) {
