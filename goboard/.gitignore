@@ -9,7 +9,6 @@ build/
 *.out
 
 # Runtime files (created by the binary)
-goboard.toml
 goboard.md
 uploads/
 
