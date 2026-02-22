@@ -25,7 +25,7 @@ depends = ["build:goboard", "build:rustboard"]
 [tasks."run:goboard"]
 description = "Run the goboard binary"
 dir = "./goboard/build"
-run = "goboard.exe"
+run = "./goboard"
 depends = ["dir:goboard"]
 
 [tasks."run:rustboard"]
