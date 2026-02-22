@@ -26,3 +26,4 @@ editor-src/node_modules/
 *.swp
 *.core
 .DS_Store
+static/vendor/
