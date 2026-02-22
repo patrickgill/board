@@ -1,10 +1,8 @@
-import { lineNumbers, highlightActiveLineGutter, highlightActiveLine, drawSelection, dropCursor, rectangularSelection, EditorView, Decoration, WidgetType, keymap, scrollPastEnd } from '@codemirror/view';
+import { lineNumbers, highlightActiveLineGutter, drawSelection, dropCursor, rectangularSelection, EditorView, Decoration, WidgetType, keymap, scrollPastEnd } from '@codemirror/view';
 import { EditorState, StateField, StateEffect, Compartment } from '@codemirror/state';
 import { markdown } from '@codemirror/lang-markdown';
 import { syntaxTree, syntaxHighlighting, defaultHighlightStyle } from '@codemirror/language';
-import { defaultKeymap, historyKeymap, history, indentWithTab } from '@codemirror/commands';
-import { closeBrackets, closeBracketsKeymap } from '@codemirror/autocomplete';
-import { searchKeymap, highlightSelectionMatches } from '@codemirror/search';
+import { defaultKeymap, historyKeymap, history, indentWithTab, moveLineUp, moveLineDown } from '@codemirror/commands';
 
 // ---------------------------------------------------------------------------
 // Remote cursor effects & state field
@@ -102,7 +100,15 @@ const headingLineField = StateField.define({
 // ---------------------------------------------------------------------------
 
 const HIDE_MARKERS = new Set(['HeaderMark', 'EmphasisMark', 'CodeMark']);
-const IMAGE_RE = /!\[([^\]]*)\]\(([^)]*)\)/;
+
+// Parse [text](url) or ![alt](url) — finds "](" separator, takes url up to last ")"
+function parseMarkdownLink(text) {
+    const sep = text.indexOf('](');
+    if (sep < 0) return null;
+    const label = text.slice(text.indexOf('[') + 1, sep);
+    const url = text.slice(sep + 2, text.lastIndexOf(')'));
+    return { label, url };
+}
 
 class ImageWidget extends WidgetType {
     constructor(src, alt) {
@@ -166,10 +172,10 @@ function buildLivePreviewDecos(state) {
                 const nodeLine = state.doc.lineAt(node.from).number;
                 if (nodeLine === cursorLine) return false;
                 const text = state.doc.sliceString(node.from, node.to);
-                const m = text.match(IMAGE_RE);
-                if (m) {
+                const link = parseMarkdownLink(text);
+                if (link) {
                     decos.push(Decoration.replace({
-                        widget: new ImageWidget(m[2], m[1]),
+                        widget: new ImageWidget(link.url, link.label),
                     }).range(node.from, node.to));
                 }
                 return false; // don't recurse — whole node replaced
@@ -245,9 +251,6 @@ function buildTheme(name) {
         '.cm-selectionBackground, &.cm-focused .cm-selectionBackground': {
             background: dark ? '#264f78 !important' : '#add6ff !important',
         },
-        '.cm-activeLine': {
-            background: dark ? '#2a2a2a' : '#f0f0f0',
-        },
         '.cm-gutters': {
             background: dark ? '#1e1e1e' : '#ffffff',
             color: dark ? '#555' : '#aaa',
@@ -293,6 +296,87 @@ function hashCode(str) {
 }
 
 // ---------------------------------------------------------------------------
+// Markdown keyboard shortcuts (bold, italic, link)
+// ---------------------------------------------------------------------------
+
+function wrapWith(view, prefix, suffix) {
+    const { from, to } = view.state.selection.main;
+    if (from === to) {
+        // Empty selection: insert markers and place cursor between
+        const insert = prefix + suffix;
+        view.dispatch({
+            changes: { from, to, insert },
+            selection: { anchor: from + prefix.length },
+        });
+        return true;
+    }
+    const selected = view.state.sliceDoc(from, to);
+    // Check if already wrapped — unwrap
+    if (selected.startsWith(prefix) && selected.endsWith(suffix) && selected.length >= prefix.length + suffix.length) {
+        const inner = selected.slice(prefix.length, selected.length - suffix.length);
+        view.dispatch({
+            changes: { from, to, insert: inner },
+            selection: { anchor: from, head: from + inner.length },
+        });
+        return true;
+    }
+    // Wrap selection
+    const wrapped = prefix + selected + suffix;
+    view.dispatch({
+        changes: { from, to, insert: wrapped },
+        selection: { anchor: from + prefix.length, head: to + prefix.length },
+    });
+    return true;
+}
+
+function insertLink(view) {
+    const { from, to } = view.state.selection.main;
+    const selected = view.state.sliceDoc(from, to);
+    const linkText = `[${selected}](url)`;
+    const urlStart = from + selected.length + 3; // past [selected](
+    const urlEnd = urlStart + 3; // length of "url"
+    view.dispatch({
+        changes: { from, to, insert: linkText },
+        selection: { anchor: urlStart, head: urlEnd },
+    });
+    return true;
+}
+
+const markdownKeymap = [
+    { key: 'Mod-b', run: (view) => wrapWith(view, '**', '**') },
+    { key: 'Mod-i', run: (view) => wrapWith(view, '*', '*') },
+    { key: 'Mod-k', run: insertLink },
+    { key: 'Alt-ArrowUp', run: moveLineUp },
+    { key: 'Alt-ArrowDown', run: moveLineDown },
+];
+
+function findLinkUrl(view, pos) {
+    let node = syntaxTree(view.state).resolve(pos);
+    while (node) {
+        if (node.name === 'Link') {
+            const link = parseMarkdownLink(view.state.sliceDoc(node.from, node.to));
+            if (link) return link.url;
+        }
+        node = node.parent;
+    }
+    return null;
+}
+
+const ctrlClickLink = EditorView.domEventHandlers({
+    mousedown(event, view) {
+        if (!event.metaKey && !event.ctrlKey) return false;
+        const linkEl = event.target.closest('.cm-md-link');
+        const pos = linkEl ? view.posAtDOM(linkEl) : view.posAtCoords({ x: event.clientX, y: event.clientY });
+        if (pos == null) return false;
+        const url = findLinkUrl(view, pos);
+        if (!url) return false;
+        event.preventDefault();
+        window.open(url, '_blank');
+        return true;
+    },
+});
+
+// ---------------------------------------------------------------------------
 // GoEditor.init
 // ---------------------------------------------------------------------------
 
@@ -303,16 +387,13 @@ function init(element, { theme = 'dark', onChange, onCursorChange } = {}) {
         doc: '',
         extensions: [
             history(),
-            keymap.of([indentWithTab, ...closeBracketsKeymap, ...searchKeymap, ...defaultKeymap, ...historyKeymap]),
+            keymap.of([indentWithTab, ...markdownKeymap, ...defaultKeymap, ...historyKeymap]),
             markdown(),
             lineNumbers(),
             highlightActiveLineGutter(),
-            highlightActiveLine(),
             drawSelection(),
             dropCursor(),
             rectangularSelection(),
-            closeBrackets(),
-            highlightSelectionMatches(),
             scrollPastEnd(),
             EditorView.lineWrapping,
             syntaxHighlighting(defaultHighlightStyle),
@@ -321,6 +402,7 @@ function init(element, { theme = 'dark', onChange, onCursorChange } = {}) {
             themeCompartment.of(buildTheme(theme)),
             headingLineField,
             livePreviewField,
+            ctrlClickLink,
             EditorView.updateListener.of(update => {
                 if (update.docChanged) {
                     if (!update.state.field(suppressField) && onChange) {
