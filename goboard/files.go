@@ -64,6 +64,10 @@ func FilesHandler(uploadDir string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		files, err := GetFiles(uploadDir)
 		if err != nil {
+			if os.IsNotExist(err) {
+				http.Error(w, "Upload directory does not exist", http.StatusNotFound)
+				return
+			}
 			logger.Error("Failed to list files", "error", err)
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return

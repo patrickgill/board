@@ -11,6 +11,8 @@ import (
 
 func UploadHandler(uploadDir string, maxUploadMB int) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		os.MkdirAll(uploadDir, 0755)
+
 		r.Body = http.MaxBytesReader(w, r.Body, int64(maxUploadMB)<<20)
 		if err := r.ParseMultipartForm(int64(maxUploadMB) << 20); err != nil {
 			logger.Warn("Failed to parse form", "error", err)

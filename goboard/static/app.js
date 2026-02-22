@@ -434,6 +434,17 @@ fileUpload.onchange = async (e) => {
 
         try {
             const res = await fetch('/uploads');
+            if (res.status === 404) {
+                if (grid) {
+                    grid.innerHTML = '';
+                    grid.style.display = 'flex';
+                    grid.style.alignItems = 'center';
+                    grid.style.justifyContent = 'center';
+                    grid.textContent = 'No files uploaded yet.';
+                    grid.style.color = 'var(--text-dim)';
+                }
+                return;
+            }
             if (!res.ok) throw new Error(res.statusText);
             const files = await res.json();
             renderFiles(files);

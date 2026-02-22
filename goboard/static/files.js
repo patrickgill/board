@@ -8,6 +8,10 @@
     async function fetchFiles() {
         try {
             const res = await fetch('/uploads');
+            if (res.status === 404) {
+                filesBody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding: 40px; color: var(--text-dim);">No files uploaded yet.</td></tr>';
+                return;
+            }
             if (!res.ok) throw new Error('Failed to fetch files');
             allFiles = await res.json();
             renderFiles(allFiles);
