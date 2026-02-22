@@ -82,16 +82,21 @@ function connect() {
 
     socket.onopen = () => {
         statusDot.classList.add('online');
+        statusDot.classList.remove('reconnecting');
         statusText.innerText = 'Online';
         reconnectDelay = 1000; // Reset backoff on successful connect
     };
 
     socket.onclose = (e) => {
         statusDot.classList.remove('online');
+        statusDot.classList.add('reconnecting');
         statusText.innerText = 'Reconnecting...';
+        statusContainer.title = '';
+        Object.keys(remoteCursors).forEach(id => editor && editor.clearRemoteCursor(id));
+        remoteCursors = {};
         // Exponential backoff: 1s, 2s, 4s, max 10s
         reconnectTimer = setTimeout(connect, reconnectDelay);
-        reconnectDelay = Math.min(reconnectDelay * 2, 10000);
+        reconnectDelay = Math.min(reconnectDelay * 2, 3000);
     };
 
     socket.onerror = () => {
