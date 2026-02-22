@@ -24,7 +24,7 @@ var defaultConfigFS []byte
 
 func loadConfig(exeDir, baseName string) Config {
 	cfg := Config{
-		Port:        "8080",
+		Port:        "80",
 		BoardFile:   baseName + ".md",
 		UploadDir:   "uploads",
 		MaxUploadMB: 100,
