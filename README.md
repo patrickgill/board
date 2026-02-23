@@ -8,10 +8,12 @@ Hardware information
 File uploading for your network  
 Cross-platform
 
-## Build requirements
-go  
-node  
-npm  
+## Build tools
+```go
+node
+npm
+mise (optional)
+```
 
 ## Build and run
 ```
