@@ -27,8 +27,6 @@ func main() {
 
 	os.MkdirAll("build", 0755)
 
-	fmt.Println("Embedding goboard.toml")
-
 	// Bundle CodeMirror 6 editor
 	if err := buildEditorBundle(); err != nil {
 		fmt.Fprintf(os.Stderr, "Error building editor bundle: %v\n", err)
@@ -36,11 +34,11 @@ func main() {
 	}
 
 	// Create zip archive with pre-gzipped files
+	fmt.Println("Creating build/static.zip")
 	if err := createGzippedZip("static", filepath.Join("build", "static.zip")); err != nil {
 		fmt.Fprintf(os.Stderr, "Error creating archive: %v\n", err)
 		os.Exit(1)
 	}
-	fmt.Println("Embedding build/static.zip")
 
 	// Generate Windows PE resources (icon, version info, manifest)
 	if runtime.GOOS == "windows" {

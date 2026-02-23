@@ -8,6 +8,10 @@ build/
 *.test
 *.out
 
+# Generated Windows resources
+_windows_386.syso
+_windows_amd64.syso
+
 # Runtime files (created by the binary)
 goboard.md
 uploads/

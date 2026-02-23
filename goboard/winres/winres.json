@@ -34,15 +34,15 @@
   },
   "RT_RCDATA": {
     "#11111": {
-      "0000": "literal.txt"
+      "0000": "literal.asc"
     }
   },
   "RT_VERSION": {
     "#1": {
       "0000": {
         "fixed": {
-          "file_version": "0.2026.223.1557",
-          "product_version": "0.2026.223.1557"
+          "file_version": "0.2026.223.1642",
+          "product_version": "0.2026.223.1642"
         },
         "info": {
           "0409": {
