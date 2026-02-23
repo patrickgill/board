@@ -26,6 +26,12 @@ go run build.go
 ./build/goboard
 ```
 
+or, mise:
+```
+mise r build:goboard && mise r run:goboard
+```
+
+mise 
 ## Libraries used
 ```
 Javascript
@@ -47,7 +53,7 @@ Go
     go-winres
 ```
 
-## Screenshot
+## 📸
 ![Goboard screenshot](screenshot.jpeg)
 
 # Incomplete
@@ -55,4 +61,5 @@ Editor
 Docker config  
 Caddy config  
 Rust port  
+mise config could be better  
 
