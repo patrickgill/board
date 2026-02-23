@@ -3,18 +3,14 @@ Collaborative Markdown editor for your network.
 Inspired by Google(c) Docs and Obsidian  
 
 ## Features
-Edit the same document  
+Multiple users can edit the same document simultaneously  
 WYSIWYM view  
 Small single binary  
 TOML configuration  
 Hardware and host OS information  
 File uploading and hosting  
 Cross-platform  
-- **Real-time Collaboration**: Multiple users can edit the same document simultaneously.
-- **Markdown Support**: Live preview of Markdown text.
-- **Image Integration**: Paste images directly from your clipboard or drag and drop them into the editor.
-- **Mobile Friendly**: Upload photos directly from your mobile device.
-
+Image Integration  
 
 ## Build tools
 ```
