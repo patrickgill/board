@@ -1,18 +1,22 @@
 # GoBoard
 Collaborative Markdown editor for your network.
+Inspired by Google(c) Docs and Obsidian  
 
 ## Features
-Single binary  
-Toml configuration  
-Hardware information  
-File uploading for your network  
-Cross-platform
+Edit the same document  
+WYSIWYM view  
+Small single binary  
+TOML configuration  
+Hardware and host OS information  
+File uploading and hosting  
+Cross-platform  
 
 ## Build tools
-```go
+```
+go
 node
 npm
-mise (optional)
+mise # (optional)
 ```
 
 ## Build and run
@@ -45,4 +49,10 @@ Go
 
 ## Screenshot
 ![Goboard screenshot](screenshot.jpeg)
+
+# Incomplete
+Editor  
+Docker config  
+Caddy config  
+Rust port  
 
