@@ -1,42 +1,50 @@
 # GoBoard
-Collaborative Markdown editor for your network.
-Inspired by Google(c) Docs and Obsidian  
+A networked, multi-user live document, with Markdown syntax.  
+Inspired by Google(c) Docs, and Obsidian.  
 
 ## Features
-Multiple users can edit the same document simultaneously  
-WYSIWYM view  
-Small single binary  
-TOML configuration  
-Hardware and host OS information  
-File uploading and hosting  
-Cross-platform  
-Image Integration  
+Multiple-user single document editing  
+WYSIWYM interface  
+Produces a single, self-contained binary  
+Host OS and hardware information  
+File uploading with file index  
+TOML file configuration  
+Cross-platform   
 
-## Build tools
+## Building
+### Build tools required
+Go  
+Node.js  
+npm  
+
+*optional*  
+mise  
+
+### Build procedure
 ```
-go
-node
-npm
-mise # (optional)
+cd goboard  
+go run build.go  
+./build/goboard  
+```
+or
+```
+mise run build:goboard && mise run run:goboard
 ```
 
-## Build and run
-```
-cd goboard
-go run build.go
-./build/goboard
-```
+## Usage
+When you launch the executable, it automatically handles its own environment by looking for a configuration file. The system uses a smart naming convention: it takes the name of your binary (the "basename") and matches it to a .toml file.
 
-or, mise:
-```
-mise r build:goboard && mise r run:goboard
-```
+Example: Running `goboard` triggers a search for `goboard.toml`.
 
-mise 
+The same pattern goes for the document `.md` file. If it exists it will be loaded, or if it doesn't it will be created when the editor is used.  
+
+Once the server is live, head to [http://localhost/](http://localhost/:80). While it defaults to port 80, you can easily swap this out for a custom port in your configuration settings.
+
 ## Libraries used
 ```
 Javascript
     CodeMirror 6
+    CodeMirror 6 extensions
 
 Go
 	"github.com/go-chi/chi/v5"
@@ -56,12 +64,4 @@ Go
 
 ## 📸
 ![Goboard screenshot](screenshot.jpeg)
-
-# Incomplete
-Editor  
-Mobile UI  
-Docker config  
-Caddy config  
-Rust port  
-mise config could be better  
 
