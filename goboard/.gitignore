@@ -11,6 +11,8 @@ build/
 # Generated Windows resources
 _windows_386.syso
 _windows_amd64.syso
+rsrc_windows_386.syso
+rsrc_windows_amd64.syso
 
 # Runtime files (created by the binary)
 goboard.md
