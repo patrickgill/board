@@ -10,6 +10,11 @@ TOML configuration
 Hardware and host OS information  
 File uploading and hosting  
 Cross-platform  
+- **Real-time Collaboration**: Multiple users can edit the same document simultaneously.
+- **Markdown Support**: Live preview of Markdown text.
+- **Image Integration**: Paste images directly from your clipboard or drag and drop them into the editor.
+- **Mobile Friendly**: Upload photos directly from your mobile device.
+
 
 ## Build tools
 ```
@@ -58,6 +63,7 @@ Go
 
 # Incomplete
 Editor  
+Mobile UI  
 Docker config  
 Caddy config  
 Rust port  
